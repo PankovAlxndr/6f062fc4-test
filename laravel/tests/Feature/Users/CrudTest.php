@@ -22,13 +22,12 @@ test('specific user screen can be rendered', function () {
         ->assertSee($user->name);
 });
 
-test('create new user without image', function () {
-//    Storage::fake('avatars');
-//    $fileFactory = UploadedFile::fake();
-//    $image = $fileFactory->image('test.png');
+test('create new user with avatar', function () {
+    Storage::fake('public');
+    $image = UploadedFile::fake()->image('avatar.jpg');
     $payload = [
         'id' => 1,
-        //        'avatar' => $file,
+        'avatar' => $image,
         'name' => 'James Bond',
         'telegram_login' => 'james_bond',
         'telegram_id' => 999,
@@ -38,18 +37,47 @@ test('create new user without image', function () {
     post(route('users.store'), $payload)
         ->assertStatus(302);
 
-//    Storage::disk('avatars')->assertExists($file->hashName());
-
     $user = User::find($payload['id']);
+
     expect($user)
         ->toBeInstanceOf(User::class)
         ->and($user->name)->toBe($payload['name'])
         ->and($user->telegram_login)->toBe($payload['telegram_login'])
         ->and($user->telegram_id)->toBe($payload['telegram_id'])
-        ->and($user->description)->toBe($payload['description']);
+        ->and($user->description)->toBe($payload['description'])
+        ->and($user->avatar)->toBe('avatars/'.$image->hashName())
+        ->and($user->getAvatarPath())->toBe(url('/storage/'.$user->avatar));
+
+    Storage::disk('public')->assertExists('avatars/'.$image->hashName());
+});
+
+test('create new user without avatar', function () {
+    $payload = [
+        'id' => 1,
+        'name' => 'James Bond',
+        'telegram_login' => 'james_bond',
+        'telegram_id' => 999,
+        'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+    ];
+
+    post(route('users.store'), $payload)
+        ->assertStatus(302);
+
+    $user = User::find($payload['id']);
+
+    expect($user)
+        ->toBeInstanceOf(User::class)
+        ->and($user->name)->toBe($payload['name'])
+        ->and($user->telegram_login)->toBe($payload['telegram_login'])
+        ->and($user->telegram_id)->toBe($payload['telegram_id'])
+        ->and($user->description)->toBe($payload['description'])
+        ->and($user->avatar)->toBeNull()
+        ->and($user->getAvatarPath())->toBe('https://placehold.jp/150x150.png');
+
 });
 
 test('edit existing user', function () {
+
     $user = User::factory()->create();
 
     $payload = [
