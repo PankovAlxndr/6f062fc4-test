@@ -9,11 +9,18 @@ ENV UID=${UID}
 ENV GID=${GID}
 ENV USER=${USER}
 
-RUN apk add --no-cache fcgi git linux-headers \
+RUN apk add --no-cache fcgi git linux-headers freetype libpng libjpeg-turbo freetype-dev libpng-dev libjpeg-turbo-dev \
     && git clone --branch $XDEBUG_VERSION --depth 1 https://github.com/xdebug/xdebug.git /usr/src/php/ext/xdebug \
     && docker-php-ext-configure xdebug --enable-xdebug-dev \
     && docker-php-ext-install xdebug pdo_mysql pcntl \
     && apk del git
+
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+  NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
+  docker-php-ext-install -j$(nproc) gd && \
+  apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
 
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 
