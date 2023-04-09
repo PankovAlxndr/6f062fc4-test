@@ -19,6 +19,10 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'avatar',
+        'description',
+        'telegram_login',
+        'telegram_id',
         'email',
         'password',
     ];
@@ -41,4 +45,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function getAvatarPath(): string
+    {
+        if ($this->avatar) {
+            return url('/storage/'.$this->avatar);
+        } else {
+        return 'https://placehold.jp/150x150.png';
+        }
+    }
+
+    public function isExistAvatar(): bool
+    {
+        return isset($this->avatar);
+    }
 }

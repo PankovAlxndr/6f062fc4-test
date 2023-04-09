@@ -42,5 +42,8 @@ app-migrate:
 app-update:
 	docker-compose run --rm php-cli composer update
 
+app-test:
+	docker-compose run --rm php-cli ./vendor/bin/pest
+
 app-nodejs:
 	docker-compose run --rm node-cli sh

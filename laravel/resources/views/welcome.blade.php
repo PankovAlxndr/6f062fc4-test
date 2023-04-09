@@ -1,18 +1,7 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Laravel</title>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet"/>
-    @vite('resources/css/app.css')
-</head>
-<body class="antialiased">
-<div
-    class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-gray-900 selection:bg-red-500 selection:text-white">
-    <h1 class="text-3xl">Hello, World!</h1>
-</div>
-@vite('resources/js/app.js')
-</body>
-</html>
+@extends('layouts.default')
+@section('content')
+    <div class="max-w-screen-xl mx-auto p-4 text-center">
+        <h1 class="text-center text-xl mb-3">Test Job for FullStack PHP Developer (Laravel) position.</h1>
+        <a target="_blank"   href="https://github.com/PankovAlxndr/6f062fc4-test" rel="nofollow" class="text-center font-medium text-blue-600 dark:text-blue-500 hover:underline">Read more</a>
+    </div>
+@stop
