@@ -15,8 +15,9 @@
             @csrf
 
             <div class="mb-6">
-                <label class="block mb-2 text-sm font-medium  @error('avatar') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror"
-                       for="user_avatar">Avatar</label>
+                <label
+                    class="block mb-2 text-sm font-medium  @error('avatar') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror"
+                    for="user_avatar">Avatar</label>
                 <input name="avatar"
                        accept="image/*"
                        class="border text-sm rounded-lg block w-full p-2.5
@@ -41,7 +42,8 @@
             </div>
 
             <div class="mb-6">
-                <label for="telegram_login" class="block mb-2 text-sm font-medium @error('telegram_login') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Telegram
+                <label for="telegram_login"
+                       class="block mb-2 text-sm font-medium @error('telegram_login') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Telegram
                     login</label>
                 <input type="text" id="telegram_login" name="telegram_login"
                        class="border text-sm rounded-lg block w-full p-2.5
@@ -53,7 +55,8 @@
             </div>
 
             <div class="mb-6">
-                <label for="telegram_id" class="block mb-2 text-sm font-medium @error('telegram_id') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Telegram
+                <label for="telegram_id"
+                       class="block mb-2 text-sm font-medium @error('telegram_id') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Telegram
                     id</label>
                 <input type="text" id="telegram_id" name="telegram_id"
                        class="border text-sm rounded-lg block w-full p-2.5
@@ -65,7 +68,8 @@
             </div>
 
             <div class="mb-6">
-                <label for="message" class="block mb-2 text-sm font-medium  @error('description') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">User
+                <label for="message"
+                       class="block mb-2 text-sm font-medium  @error('description') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">User
                     description</label>
                 <textarea id="message" rows="4" name="description"
                           class="border text-sm rounded-lg block w-full p-2.5
@@ -74,6 +78,30 @@
                           @enderror
                           placeholder="Leave a comment...">{{ old('description') }}</textarea>
                 @error('description')<p class="mt-1 text-sm text-red-600 dark:text-red-500">{{$message}}</p>@enderror
+            </div>
+
+
+            <div class="mb-6">
+                <label for=""
+                       class="block mb-2 text-sm font-medium @error('tag.*') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Tags</label>
+                <div class="flex flex-wrap">
+                    @foreach($tags as $tag)
+                        <div class="mr-2 mb-2">
+                            <label for="tag_{{$tag->id}}"
+                                   class="font-medium px-2.5 py-0.5 rounded border cursor-pointer bg-gray-100 hover:bg-gray-300 text-gray-800 border-gray-500 ">{{$tag->name}}</label>
+                            <input type="checkbox" id="tag_{{$tag->id}}" name="tag[]" class="js-tag"
+                                   value="{{$tag->id}} " style="display: none">
+                        </div>
+                    @endforeach
+                </div>
+
+                @if($errors->has('tag.*'))
+                    @foreach($errors->get('tag.*') as $arTagError)
+                        @foreach($arTagError as $err)
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-500">{{$err}}</p>
+                        @endforeach
+                    @endforeach
+                @endif
             </div>
 
             <div class="flex items-center justify-end">
@@ -86,3 +114,23 @@
     </div>
 @endsection
 
+@section('scripts')
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            let tags = document.querySelectorAll('.js-tag');
+            if (tags) {
+                tags.forEach((tag) => {
+                    tag.addEventListener('change', function (event) {
+                        if (this.checked) {
+                            this.previousElementSibling.classList.remove('bg-gray-100', 'hover:bg-gray-300', 'text-gray-800', 'border-gray-500');
+                            this.previousElementSibling.classList.add('bg-green-100', 'hover:bg-green-300', 'text-green-800', 'border-green-500');
+                        } else {
+                            this.previousElementSibling.classList.remove('bg-green-100', 'hover:bg-green-300', 'text-green-800', 'border-green-500');
+                            this.previousElementSibling.classList.add('bg-gray-100', 'hover:bg-gray-300', 'text-gray-800', 'border-gray-500');
+                        }
+                    })
+                });
+            }
+        });
+    </script>
+@endsection

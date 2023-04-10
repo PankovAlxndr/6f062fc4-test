@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Users\ChangeTagRequest;
 use App\Http\Requests\Users\StoreRequest;
 use App\Http\Requests\Users\UpdateRequest;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -19,7 +21,9 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('pages.users.create');
+        $tags = Tag::all();
+
+        return view('pages.users.create', compact('tags'));
     }
 
     public function store(StoreRequest $request)
@@ -42,13 +46,19 @@ class UserController extends Controller
                 $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id')
             )
         );
+        if ($tags = $request->safe()->only('tag')) {
+            $user->tags()->attach($tags['tag']);
+        }
 
         return redirect()->route('users.edit', $user);
     }
 
     public function edit(User $user)
     {
-        return view('pages.users.edit', compact('user'));
+        $user->load('tags');
+        $tags = Tag::all();
+
+        return view('pages.users.edit', compact('user', 'tags'));
     }
 
     public function update(UpdateRequest $request, User $user)
@@ -74,5 +84,18 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index');
+    }
+
+    public function changeTag(ChangeTagRequest $request, User $user, Tag $tag)
+    {
+        if ($request->safe(['state'])['state'] === true) {
+            if ($user->tags->isEmpty() || $user->tags->find($tag->id)->count() === 0) {
+                $user->tags()->attach($tag);
+            }
+        } elseif ($request->safe(['state'])['state'] === false) {
+            $user->tags()->detach($tag);
+        }
+
+        return response()->noContent(201);
     }
 }
