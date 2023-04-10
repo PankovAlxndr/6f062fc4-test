@@ -3,7 +3,7 @@
 /laravel/public/build
 /laravel/public/hot
 /laravel/public/storage
-/laravel/storage
+/laravel/storage/*.key
 /laravel/vendor
 /.env
 /laravel/.env
