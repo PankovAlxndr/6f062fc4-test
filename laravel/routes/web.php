@@ -4,7 +4,6 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\UserController;
 use App\Models\Group;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
