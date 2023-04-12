@@ -27,7 +27,6 @@ Route::prefix('users')->group(function () {
     Route::get('/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/', [UserController::class, 'store'])->name('users.store');
     Route::delete('/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    Route::patch('/{user}/change-tag/{tag}', [UserController::class, 'changeTag'])->name('users.change-tag');
 });
 
 Route::prefix('groups')->group(function () {

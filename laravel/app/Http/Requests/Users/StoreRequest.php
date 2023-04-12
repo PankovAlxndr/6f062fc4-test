@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Users;
 
-use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,8 +16,7 @@ class StoreRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:255'],
             'telegram_login' => ['required', 'string', Rule::unique(User::class, 'telegram_login')],
             'telegram_id' => ['required', 'integer', Rule::unique(User::class, 'telegram_id')],
-            'tag' => ['nullable', 'array'],
-            'tag.*' => [Rule::exists(Tag::class, 'id')],
+            'tags' => ['nullable', 'json'],
         ];
     }
 }

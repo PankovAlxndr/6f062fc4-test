@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Users\ChangeTagRequest;
 use App\Http\Requests\Users\StoreRequest;
 use App\Http\Requests\Users\UpdateRequest;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\TagService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -21,15 +21,12 @@ class UserController extends Controller
 
     public function create()
     {
-        $tags = Tag::all();
-
-        return view('pages.users.create', compact('tags'));
+        return view('pages.users.create');
     }
 
-    public function store(StoreRequest $request)
+    public function store(StoreRequest $request, TagService $tagService)
     {
-        //todo: rollback case (removing file)
-        $avatarPath = [];
+        $avatarPath['avatar'] = null;
         if ($request->hasFile('avatar')) {
             $avatarPath['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
@@ -46,8 +43,15 @@ class UserController extends Controller
                 $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id')
             )
         );
-        if ($tags = $request->safe()->only('tag')) {
-            $user->tags()->attach($tags['tag']);
+
+        if ($tags = $request->safe()->only('tags')) {
+            $tagCollection = collect(json_decode($tags['tags'], true));
+            $tagService->persistTags($tagCollection->pluck('value'));
+            if ($cleanTags = $tagService->getCleanTags()) {
+                $tagsDb = Tag::whereIn('name', $cleanTags->toArray())->get();
+                $user->tags()->attach($tagsDb);
+            }
+
         }
 
         return redirect()->route('users.edit', $user);
@@ -56,14 +60,14 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $user->load('tags');
-        $tags = Tag::all();
+        $tags = $user->tags->implode('name', ',');
 
         return view('pages.users.edit', compact('user', 'tags'));
     }
 
-    public function update(UpdateRequest $request, User $user)
+    public function update(UpdateRequest $request, User $user, TagService $tagService)
     {
-        //todo: rollback case (removing file)
+        // todo: rollback case (removing file)
         $avatarPath = [];
         if ($request->hasFile('avatar')) {
             $avatarPath['avatar'] = $request->file('avatar')->store('avatars', 'public');
@@ -76,6 +80,15 @@ class UserController extends Controller
             )
         );
 
+        if ($tags = $request->safe()->only('tags')) {
+            $tagCollection = collect(json_decode($tags['tags'], true));
+            $tagService->persistTags($tagCollection->pluck('value'));
+            if ($cleanTags = $tagService->getCleanTags()) {
+                $tagsDb = Tag::whereIn('name', $cleanTags->toArray())->get();
+                $user->tags()->sync($tagsDb);
+            }
+        }
+
         return redirect()->route('users.edit', $user);
     }
 
@@ -84,18 +97,5 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index');
-    }
-
-    public function changeTag(ChangeTagRequest $request, User $user, Tag $tag)
-    {
-        if ($request->safe(['state'])['state'] === true) {
-            if ($user->tags->isEmpty() || $user->tags->find($tag->id)->count() === 0) {
-                $user->tags()->attach($tag);
-            }
-        } elseif ($request->safe(['state'])['state'] === false) {
-            $user->tags()->detach($tag);
-        }
-
-        return response()->noContent(201);
     }
 }

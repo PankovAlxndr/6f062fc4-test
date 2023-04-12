@@ -15,6 +15,7 @@ class UpdateRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:255'],
             'telegram_login' => ['required', 'string', Rule::unique('users', 'telegram_login')->ignore($this->id)],
             'telegram_id' => ['required', 'integer', Rule::unique('users', 'telegram_id')->ignore($this->id)],
+            'tags' => ['nullable', 'json'],
         ];
     }
 }

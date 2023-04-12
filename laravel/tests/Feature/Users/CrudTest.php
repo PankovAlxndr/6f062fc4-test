@@ -26,8 +26,6 @@ test('specific user screen can be rendered', function () {
 test('create new user with avatar', function () {
     Storage::fake('public');
     $image = UploadedFile::fake()->image('avatar.jpg');
-    $tag1 = Tag::factory()->create();
-    $tag2 = Tag::factory()->create();
     $payload = [
         'id' => 1,
         'avatar' => $image,
@@ -35,7 +33,7 @@ test('create new user with avatar', function () {
         'telegram_login' => 'james_bond',
         'telegram_id' => 999,
         'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-        'tag' => [$tag1->id, $tag2->id],
+        'tags' => '[{"value":"php"},{"value":"go"},{"value":"java"}]',
     ];
 
     post(route('users.store'), $payload)
@@ -51,7 +49,7 @@ test('create new user with avatar', function () {
         ->and($user->description)->toBe($payload['description'])
         ->and($user->avatar)->toBe('avatars/'.$image->hashName())
         ->and($user->getAvatarPath())->toBe(url('/storage/'.$user->avatar))
-        ->and($user->tags)->toHaveCount(2)
+        ->and($user->tags)->toHaveCount(3)
         ->and($user->tags)->toContainOnlyInstancesOf(Tag::class);
 
     Storage::disk('public')->assertExists('avatars/'.$image->hashName());

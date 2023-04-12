@@ -84,6 +84,16 @@
                 @error('description')<p class="mt-1 text-sm text-red-600 dark:text-red-500">{{$message}}</p>@enderror
             </div>
 
+            <div class="mb-6">
+                <label for=""
+                       class="block mb-2 text-sm font-medium @error('tags') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Tags</label>
+                <div class="flex flex-wrap">
+                    <input id="tagify" name="tags" value='{{ old('tags', $tags) }}'>
+                </div>
+
+                @error('tags')<p class="mt-1 text-sm text-red-600 dark:text-red-500">{{$message}}</p>@enderror
+            </div>
+
             <div class="flex items-center justify-between">
                 <button
                     class="js-remove text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
@@ -96,25 +106,7 @@
             </div>
         </form>
 
-        @php($userTags = $user->tags->keyBy('id'))
-        <div
-            class="block px-6 pt-6 pb-4 mt-6 bg-white border border-gray-200 rounded-lg  shadow-lg  dark:bg-gray-800 dark:border-gray-700 ">
-            <div class="flex flex-wrap">
-                @foreach($tags as $tag)
-                    <div class="mr-2 mb-2">
-                        <label for="tag_{{$tag->id}}"
-                            @class([
-                                  'font-medium px-2.5 py-0.5 rounded border cursor-pointer',
-                                  'bg-gray-100 hover:bg-gray-300 text-gray-800 border-gray-500' => !$userTags->has($tag->id),
-                                  'bg-green-100 hover:bg-green-300 text-green-800 border-green-500' => $userTags->has($tag->id),
-                              ])>{{$tag->name}}</label>
-                        <input type="checkbox" id="tag_{{$tag->id}}" name="tag" class="js-tag" data-user="{{$user->id}}"
-                               @checked($userTags->has($tag->id))
-                               value="{{$tag->id}}" style="display: none">
-                    </div>
-                @endforeach
-            </div>
-        </div>
+
 
         <form method="post"
               id="remove-from"
@@ -130,9 +122,9 @@
 @section('scripts')
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            let btn = document.querySelector('.js-remove');
-            let form = document.querySelector('#remove-from');
-            let tags = document.querySelectorAll('.js-tag');
+            const btn = document.querySelector('.js-remove');
+            const form = document.querySelector('#remove-from');
+            const tagInput = document.querySelector('#tagify');
 
             if (btn && form) {
                 btn.addEventListener('click', function (event) {
@@ -142,29 +134,8 @@
                 })
             }
 
-            if (tags) {
-                tags.forEach((tag) => {
-                    tag.addEventListener('change', function (event) {
-                        const userId = this.getAttribute('data-user');
-                        const tagId = this.value;
-
-                        axios.patch(`/users/${userId}/change-tag/${tagId}`, {'state': this.checked})
-                            .then((response) => {
-                                if (this.checked) {
-                                    this.previousElementSibling.classList.remove('bg-gray-100', 'hover:bg-gray-300', 'text-gray-800', 'border-gray-500');
-                                    this.previousElementSibling.classList.add('bg-green-100', 'hover:bg-green-300', 'text-green-800', 'border-green-500');
-                                } else {
-                                    this.previousElementSibling.classList.remove('bg-green-100', 'hover:bg-green-300', 'text-green-800', 'border-green-500');
-                                    this.previousElementSibling.classList.add('bg-gray-100', 'hover:bg-gray-300', 'text-gray-800', 'border-gray-500');
-                                }
-                            })
-                            .catch((error) => {
-                                this.checked = false
-                                alert(error.response.data.message)
-                            })
-                    })
-                });
-            }
+            if (tagInput)
+                tagify = new Tagify(tagInput);
         });
     </script>
 @endsection
