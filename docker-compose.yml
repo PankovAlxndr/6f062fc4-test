@@ -11,7 +11,7 @@ services:
       - ./laravel:/var/www/laravel
     depends_on:
       - mysql
-      - api-php-fpm
+      - php-fpm
 
   php-cli:
     build:
