@@ -9,10 +9,10 @@ class TagSeeder extends Seeder
     public function run(): void
     {
         \App\Models\Tag::factory()->createMany([
-            ['name' => 'PHP', 'slug' => 'php'],
-            ['name' => 'Go', 'slug' => 'go'],
-            ['name' => 'JS', 'slug' => 'js'],
-            ['name' => 'SQL', 'slug' => 'sql'],
+            ['name' => 'php', 'slug' => 'php'],
+            ['name' => 'go', 'slug' => 'go'],
+            ['name' => 'js', 'slug' => 'js'],
+            ['name' => 'sql', 'slug' => 'sql'],
         ]);
     }
 }
