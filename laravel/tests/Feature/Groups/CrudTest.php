@@ -63,3 +63,11 @@ test('delete existing group', function () {
     $group = Group::find($group->id);
     expect($group)->toBeNull();
 });
+
+test('can not delete group with is_not_delete', function () {
+    $group = Group::factory(['is_not_delete' => true])->create();
+    delete(route('groups.destroy', $group))->assertStatus(403);
+
+    $group = Group::find($group->id);
+    expect($group)->toBeInstanceOf(Group::class);
+});

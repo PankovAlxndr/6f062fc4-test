@@ -17,10 +17,20 @@ class Group extends Model
     protected $fillable = [
         'name',
         'slug',
+        'is_not_delete',
+    ];
+
+    protected $casts = [
+        'is_not_delete' => 'boolean',
     ];
 
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'group_id');
+    }
+
+    public function isAllowDelete(): bool
+    {
+        return ! $this->is_not_delete;
     }
 }

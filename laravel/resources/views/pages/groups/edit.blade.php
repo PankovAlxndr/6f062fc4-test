@@ -29,24 +29,27 @@
                 @error('name')<p class="mt-1 text-sm text-red-600 dark:text-red-500">{{$message}}</p>@enderror
             </div>
 
-            <div class="flex items-center justify-between">
-                <button
-                    class="js-remove text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-                    Delete
-                </button>
+            <div class="flex items-center @if($group->isAllowDelete()) justify-between @else justify-end @endif">
+                @can('delete', $group)
+                    <button
+                        class="js-remove text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+                        Delete
+                    </button>
+                @endif
                 <button type="submit"
                         class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                     Update
                 </button>
             </div>
         </form>
-
-        <form method="post"
-              id="remove-from"
-              action="{{route('groups.destroy', $group)}}" style="display: none">
-            @csrf
-            @method('DELETE')
-        </form>
+        @can('delete', $group)
+            <form method="post"
+                  id="remove-from"
+                  action="{{route('groups.destroy', $group)}}" style="display: none">
+                @csrf
+                @method('DELETE')
+            </form>
+        @endif
     </div>
 
 @endsection

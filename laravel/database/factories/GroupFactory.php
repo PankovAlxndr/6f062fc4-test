@@ -14,6 +14,7 @@ class GroupFactory extends Factory
         return [
             'name' => $this->faker->name(),
             'slug' => $this->faker->unique()->slug(),
+            'is_not_delete' => false,
         ];
     }
 }
