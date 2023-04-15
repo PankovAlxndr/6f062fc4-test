@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
@@ -25,6 +26,7 @@ class UserFactory extends Factory
             'description' => $this->faker->text(),
             'telegram_login' => $this->faker->unique->word(),
             'telegram_id' => $this->faker->unique()->randomNumber(),
+            'group_id' => Group::factory(),
         ];
     }
 }

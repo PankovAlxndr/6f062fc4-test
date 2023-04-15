@@ -46,6 +46,24 @@
             </div>
 
             <div class="mb-6">
+                <label for="group_id"
+                       class="block mb-2 text-sm font-medium @error('group_id') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Group</label>
+                <select id="group_id" name="group_id"
+                        class="border text-sm rounded-lg block w-full p-2.5
+                        @error('group_id') bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500 dark:bg-red-100 dark:border-red-400
+                        @else bg-gray-50 border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    @enderror>
+                    @foreach ($groups as $group)
+                        <option value="{{ $group->id }}"
+                            @selected( old('group_id', $user->group_id) == $group->id)>
+                            {{ $group->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('group_id')<p class="mt-1 text-sm text-red-600 dark:text-red-500">{{$message}}</p>@enderror
+            </div>
+
+            <div class="mb-6">
                 <label for="telegram_login"
                        class="block mb-2 text-sm font-medium @error('telegram_login') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror">Telegram
                     login</label>

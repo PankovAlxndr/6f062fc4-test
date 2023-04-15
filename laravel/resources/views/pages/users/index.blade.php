@@ -15,6 +15,9 @@
                     <th scope="col" class="px-6 py-3">
                         User
                     </th>
+                    <th scope="col" class="px-6 py-3">
+                        Group
+                    </th>
                     <th scope="col" class="px-6 py-3 text-right">
                         Action
                     </th>
@@ -32,6 +35,9 @@
                                 <div class="font-normal text-gray-500">{{'@'.$user->telegram_login}}</div>
                             </div>
                         </th>
+                        <td class="px-6 py-4">
+                            <div class="font-normal text-gray-500">{{$user->group->name}}</div>
+                        </td>
                         <td class="px-6 py-4 text-right">
                             <a href="{{route('users.edit', $user)}}"
                                class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit

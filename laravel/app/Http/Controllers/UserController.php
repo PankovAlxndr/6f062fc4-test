@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Users\StoreRequest;
 use App\Http\Requests\Users\UpdateRequest;
+use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\TagService;
@@ -14,14 +15,19 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::select(['id', 'name', 'avatar', 'telegram_login'])->latest()->simplePaginate(10);
+        $users = User::select(['id', 'name', 'avatar', 'telegram_login', 'group_id'])
+            ->with('group')
+            ->latest()
+            ->simplePaginate(10);
 
         return view('pages.users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('pages.users.create');
+        $groups = Group::all()->sortBy('name');
+
+        return view('pages.users.create', compact('groups'));
     }
 
     public function store(StoreRequest $request, TagService $tagService)
@@ -40,7 +46,7 @@ class UserController extends Controller
                     'remember_token' => Str::random(10),
                 ],
                 $avatarPath,
-                $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id')
+                $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id')
             )
         );
 
@@ -61,8 +67,9 @@ class UserController extends Controller
     {
         $user->load('tags');
         $tags = $user->tags->implode('name', ',');
+        $groups = Group::all()->sortBy('name');
 
-        return view('pages.users.edit', compact('user', 'tags'));
+        return view('pages.users.edit', compact('user', 'tags', 'groups'));
     }
 
     public function update(UpdateRequest $request, User $user, TagService $tagService)
@@ -76,7 +83,7 @@ class UserController extends Controller
         $user->updateOrFail(
             array_merge(
                 $avatarPath,
-                $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id')
+                $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id')
             )
         );
 

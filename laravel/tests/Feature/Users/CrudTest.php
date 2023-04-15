@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -26,6 +27,7 @@ test('specific user screen can be rendered', function () {
 test('create new user with avatar', function () {
     Storage::fake('public');
     $image = UploadedFile::fake()->image('avatar.jpg');
+    Group::factory(['id' => Group::GROUP_NEW])->create();
     $payload = [
         'id' => 1,
         'avatar' => $image,
@@ -34,6 +36,7 @@ test('create new user with avatar', function () {
         'telegram_id' => 999,
         'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
         'tags' => '[{"value":"php"},{"value":"go"},{"value":"java"}]',
+        'group_id' => Group::GROUP_NEW,
     ];
 
     post(route('users.store'), $payload)
@@ -50,18 +53,21 @@ test('create new user with avatar', function () {
         ->and($user->avatar)->toBe('avatars/'.$image->hashName())
         ->and($user->getAvatarPath())->toBe(url('/storage/'.$user->avatar))
         ->and($user->tags)->toHaveCount(3)
-        ->and($user->tags)->toContainOnlyInstancesOf(Tag::class);
+        ->and($user->tags)->toContainOnlyInstancesOf(Tag::class)
+        ->and($user->group_id)->toBe(Group::GROUP_NEW);
 
     Storage::disk('public')->assertExists('avatars/'.$image->hashName());
 });
 
 test('create new user without avatar', function () {
+    Group::factory(['id' => Group::GROUP_NEW])->create();
     $payload = [
         'id' => 1,
         'name' => 'James Bond',
         'telegram_login' => 'james_bond',
         'telegram_id' => 999,
         'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+        'group_id' => Group::GROUP_NEW,
     ];
 
     post(route('users.store'), $payload)
@@ -77,11 +83,12 @@ test('create new user without avatar', function () {
         ->and($user->description)->toBe($payload['description'])
         ->and($user->avatar)->toBeNull()
         ->and($user->getAvatarPath())->toBe('https://placehold.jp/150x150.png')
-        ->and($user->tags)->toHaveCount(0);
+        ->and($user->tags)->toHaveCount(0)
+        ->and($user->group_id)->toBe(Group::GROUP_NEW);
 });
 
 test('edit existing user', function () {
-
+    $group = Group::factory()->create();
     $user = User::factory()->create();
 
     $payload = [
@@ -90,6 +97,7 @@ test('edit existing user', function () {
         'telegram_login' => 'james_bond',
         'telegram_id' => 999,
         'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+        'group_id' => $group->id,
     ];
 
     patch(route('users.update', $user), $payload)
@@ -102,7 +110,8 @@ test('edit existing user', function () {
         ->and($user->name)->toBe($payload['name'])
         ->and($user->telegram_login)->toBe($payload['telegram_login'])
         ->and($user->telegram_id)->toBe($payload['telegram_id'])
-        ->and($user->description)->toBe($payload['description']);
+        ->and($user->description)->toBe($payload['description'])
+        ->and($user->group_id)->toBe($group->id);
 });
 
 test('delete existing user', function () {
