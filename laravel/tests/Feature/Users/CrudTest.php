@@ -117,8 +117,15 @@ test('edit existing user', function () {
 test('delete existing user', function () {
     $user = User::factory()->create();
 
-    delete(route('users.destroy', $user))->assertStatus(302);
+    delete(route('users.destroy', $user))->assertRedirectToRoute('users.index');
 
     $user = User::find($user->id);
     expect($user)->toBeNull();
+});
+
+test('logout user', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user, 'web');
+    post(route('users.logout'))->assertRedirectToRoute('users.index');
+    $this->assertGuest();
 });

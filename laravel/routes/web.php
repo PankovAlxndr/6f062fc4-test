@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,7 @@ Route::prefix('users')->group(function () {
     Route::get('/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/', [UserController::class, 'store'])->name('users.store');
     Route::delete('/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/logout', [UserController::class, 'logout'])->name('users.logout');
 });
 
 Route::prefix('groups')->group(function () {
@@ -46,3 +48,7 @@ Route::prefix('tags')->group(function () {
     Route::post('/', [TagController::class, 'store'])->name('tags.store');
     Route::delete('/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
 });
+
+Route::get('/signin-telegram', TelegramController::class)
+    ->name('telegram.signin')
+    ->middleware('guest');

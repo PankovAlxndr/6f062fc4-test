@@ -8,7 +8,9 @@ use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\TagService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -102,6 +104,13 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+
+        return redirect()->route('users.index');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
 
         return redirect()->route('users.index');
     }

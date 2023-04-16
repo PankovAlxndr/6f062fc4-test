@@ -30,6 +30,7 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
     volumes:
       - ./laravel:/var/www/laravel
     depends_on:
@@ -52,6 +53,7 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
     volumes:
       - ./laravel:/var/www/laravel
     depends_on:
@@ -70,6 +72,7 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
     volumes:
       - ./laravel:/var/www/laravel
 
@@ -90,6 +93,7 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
     volumes:
       - ./laravel:/var/www/laravel
 

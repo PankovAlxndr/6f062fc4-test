@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\Telegram\CheckAuthorizationService;
+use Illuminate\Foundation\Application;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,8 +23,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(UrlGenerator $url): void
     {
-        //
+        $this->app->bind(CheckAuthorizationService::class, function (Application $app) {
+            return new CheckAuthorizationService(config('telegram.token'));
+        });
     }
 }
