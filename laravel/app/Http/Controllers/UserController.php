@@ -53,8 +53,8 @@ class UserController extends Controller
             )
         );
 
-        if ($tags = $request->safe()->only('tags')) {
-            $tagCollection = collect(json_decode($tags['tags'], true));
+        if ($request->safe()->has('tags') && $tags = $request->safe()->only('tags')['tags']) {
+            $tagCollection = collect(json_decode($tags, true));
             $tagService->persistTags($tagCollection->pluck('value'));
             if ($cleanTags = $tagService->getCleanTags()) {
                 $tagsDb = Tag::whereIn('name', $cleanTags->toArray())->get();
@@ -91,8 +91,8 @@ class UserController extends Controller
             )
         );
 
-        if ($tags = $request->safe()->only('tags')) {
-            $tagCollection = collect(json_decode($tags['tags'], true));
+        if ($request->safe()->has('tags') && $tags = $request->safe()->only('tags')['tags']) {
+            $tagCollection = collect(json_decode($tags, true));
             $tagService->persistTags($tagCollection->pluck('value'));
             if ($cleanTags = $tagService->getCleanTags()) {
                 $tagsDb = Tag::whereIn('name', $cleanTags->toArray())->get();
