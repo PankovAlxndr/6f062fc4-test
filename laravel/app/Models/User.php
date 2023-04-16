@@ -43,4 +43,26 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Tag::class)->withTimestamps();
     }
+
+    /**
+     * @param  string|int|Group  $roles
+     */
+    public function hasGroup($group): bool
+    {
+        $this->loadMissing('group');
+
+        if (is_string($group)) {
+            return $this->group->slug === $group;
+        }
+
+        if (is_int($group)) {
+            return $this->group->id === $group;
+        }
+
+        if ($group instanceof Group) {
+            return $this->group === $group;
+        }
+
+        throw new \TypeError('Unsupported type for $group parameter to hasGroup().');
+    }
 }

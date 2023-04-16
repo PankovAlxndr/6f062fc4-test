@@ -4,126 +4,175 @@ use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
-use function Pest\Laravel\delete;
+use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
-use function Pest\Laravel\patch;
-use function Pest\Laravel\post;
 
-test('users list screen can be rendered', function () {
-    get(route('users.index'))->assertStatus(200);
+test('unauthenticated can not be rendered users screen', function () {
+    get(route('users.index'))->assertRedirectToRoute('index');
 });
 
-test('create user form screen can be rendered', function () {
-    get(route('users.create'))->assertStatus(200);
+test('unauthenticated can not be rendered create user form screen', function () {
+    get(route('users.create'))->assertRedirectToRoute('index');
 });
 
-test('specific user screen can be rendered', function () {
+test('unauthenticated can not be rendered specific user screen', function () {
     $user = User::factory()->create();
-    get(route('users.edit', $user))
-        ->assertStatus(200)
-        ->assertSee($user->name);
+    get(route('users.edit', $user))->assertRedirectToRoute('index');
 });
 
-test('create new user with avatar', function () {
+test('not admin can not be rendered users screen', function () {
+    $group = Group::factory(['slug' => 'new'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('users.index'))->assertRedirectToRoute('index');
+});
+
+test('not admin can not be rendered create user form screen', function () {
+    $group = Group::factory(['slug' => 'new'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('users.create'))->assertRedirectToRoute('index');
+});
+
+test('not admin can not be rendered specific user screen', function () {
+    $group = Group::factory(['slug' => 'new'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('users.edit', $user))->assertRedirectToRoute('index');
+});
+
+test('admin can be rendered users list screen', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('users.index'))->assertSuccessful();
+});
+
+test('admin can be rendered create user form screen', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('users.create'))->assertSuccessful();
+});
+
+test('admin can be rendered specific user screen', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('users.edit', $user))->assertSuccessful();
+});
+
+test('admin create new user with avatar', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+
     Storage::fake('public');
     $image = UploadedFile::fake()->image('avatar.jpg');
-    Group::factory(['id' => Group::GROUP_NEW])->create();
+    $userGroup = Group::factory(['slug' => 'new'])->create();
+
     $payload = [
-        'id' => 1,
+        'id' => 2,
         'avatar' => $image,
         'name' => 'James Bond',
         'telegram_login' => 'james_bond',
         'telegram_id' => 999,
         'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
         'tags' => '[{"value":"php"},{"value":"go"},{"value":"java"}]',
-        'group_id' => Group::GROUP_NEW,
+        'group_id' => $userGroup->id,
     ];
 
-    post(route('users.store'), $payload)
-        ->assertStatus(302);
+    actingAs($user)->post(route('users.store'), $payload)
+        ->assertRedirectToRoute('users.edit', $payload['id']);
 
-    $user = User::find($payload['id']);
+    $createdUser = User::find($payload['id']);
 
-    expect($user)
+    expect($createdUser)
         ->toBeInstanceOf(User::class)
-        ->and($user->name)->toBe($payload['name'])
-        ->and($user->telegram_login)->toBe($payload['telegram_login'])
-        ->and($user->telegram_id)->toBe($payload['telegram_id'])
-        ->and($user->description)->toBe($payload['description'])
-        ->and($user->avatar)->toBe(url('/storage/avatars/'.$image->hashName()))
-        ->and($user->tags)->toHaveCount(3)
-        ->and($user->tags)->toContainOnlyInstancesOf(Tag::class)
-        ->and($user->group_id)->toBe(Group::GROUP_NEW);
+        ->and($createdUser->name)->toBe($payload['name'])
+        ->and($createdUser->telegram_login)->toBe($payload['telegram_login'])
+        ->and($createdUser->telegram_id)->toBe($payload['telegram_id'])
+        ->and($createdUser->description)->toBe($payload['description'])
+        ->and($createdUser->avatar)->toBe(url('/storage/avatars/'.$image->hashName()))
+        ->and($createdUser->tags)->toHaveCount(3)
+        ->and($createdUser->tags)->toContainOnlyInstancesOf(Tag::class)
+        ->and($createdUser->group_id)->toBe($userGroup->id);
 
     Storage::disk('public')->assertExists('avatars/'.$image->hashName());
 });
 
 test('create new user without avatar', function () {
-    Group::factory(['id' => Group::GROUP_NEW])->create();
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+
+    $userGroup = Group::factory(['slug' => 'new'])->create();
     $payload = [
-        'id' => 1,
+        'id' => 2,
         'name' => 'James Bond',
         'telegram_login' => 'james_bond',
         'telegram_id' => 999,
         'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-        'group_id' => Group::GROUP_NEW,
+        'group_id' => $userGroup->id,
     ];
 
-    post(route('users.store'), $payload)
-        ->assertStatus(302);
+    actingAs($user)->post(route('users.store'), $payload)
+        ->assertRedirectToRoute('users.edit', $payload['id']);
 
-    $user = User::find($payload['id']);
+    $createdUser = User::find($payload['id']);
 
-    expect($user)
+    expect($createdUser)
         ->toBeInstanceOf(User::class)
-        ->and($user->name)->toBe($payload['name'])
-        ->and($user->telegram_login)->toBe($payload['telegram_login'])
-        ->and($user->telegram_id)->toBe($payload['telegram_id'])
-        ->and($user->description)->toBe($payload['description'])
-        ->and($user->avatar)->toBeNull()
-        ->and($user->tags)->toHaveCount(0)
-        ->and($user->group_id)->toBe(Group::GROUP_NEW);
+        ->and($createdUser->name)->toBe($payload['name'])
+        ->and($createdUser->telegram_login)->toBe($payload['telegram_login'])
+        ->and($createdUser->telegram_id)->toBe($payload['telegram_id'])
+        ->and($createdUser->description)->toBe($payload['description'])
+        ->and($createdUser->avatar)->toBeNull()
+        ->and($createdUser->tags)->toHaveCount(0)
+        ->and($createdUser->group_id)->toBe($userGroup->id);
 });
 
 test('edit existing user', function () {
-    $group = Group::factory()->create();
-    $user = User::factory()->create();
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+
+    $createdGroup = Group::factory()->create();
+    $createdUser = User::factory()->create();
 
     $payload = [
-        'id' => $user->id,
+        'id' => $createdUser->id,
         'name' => 'James Bond',
         'telegram_login' => 'james_bond',
         'telegram_id' => 999,
         'description' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-        'group_id' => $group->id,
+        'group_id' => $createdGroup->id,
     ];
 
-    patch(route('users.update', $user), $payload)
-        ->assertStatus(302);
+    actingAs($user)->patch(route('users.update', $createdUser), $payload)
+        ->assertRedirectToRoute('users.edit', $createdUser);
 
-    $user = User::find($user->id);
+    $createdUser = User::find($createdUser->id);
 
-    expect($user)
+    expect($createdUser)
         ->toBeInstanceOf(User::class)
-        ->and($user->name)->toBe($payload['name'])
-        ->and($user->telegram_login)->toBe($payload['telegram_login'])
-        ->and($user->telegram_id)->toBe($payload['telegram_id'])
-        ->and($user->description)->toBe($payload['description'])
-        ->and($user->group_id)->toBe($group->id);
+        ->and($createdUser->name)->toBe($payload['name'])
+        ->and($createdUser->telegram_login)->toBe($payload['telegram_login'])
+        ->and($createdUser->telegram_id)->toBe($payload['telegram_id'])
+        ->and($createdUser->description)->toBe($payload['description'])
+        ->and($createdUser->group_id)->toBe($createdGroup->id);
 });
 
 test('delete existing user', function () {
-    $user = User::factory()->create();
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
 
-    delete(route('users.destroy', $user))->assertRedirectToRoute('users.index');
+    $createdUser = User::factory()->create();
 
-    $user = User::find($user->id);
-    expect($user)->toBeNull();
+    actingAs($user)->delete(route('users.destroy', $createdUser))
+        ->assertRedirectToRoute('users.index');
+
+    $createdUser = User::find($createdUser->id);
+    expect($createdUser)->toBeNull();
 });
 
 test('logout user', function () {
-    $user = User::factory()->create();
-    $this->actingAs($user, 'web');
-    post(route('users.logout'))->assertRedirectToRoute('users.index');
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+
+    actingAs($user)->post(route('users.logout'))
+        ->assertRedirectToRoute('users.index');
+
     $this->assertGuest();
 });

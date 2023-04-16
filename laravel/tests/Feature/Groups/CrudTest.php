@@ -1,30 +1,67 @@
 <?php
 
 use App\Models\Group;
-use function Pest\Laravel\delete;
+use App\Models\User;
+use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
-use function Pest\Laravel\patch;
-use function Pest\Laravel\post;
 
-test('groups list screen can be rendered', function () {
-    get(route('groups.index'))->assertStatus(200);
+test('unauthenticated can not be rendered groups screen', function () {
+    get(route('groups.index'))->assertRedirectToRoute('index');
 });
 
-test('create group form screen can be rendered', function () {
-    get(route('groups.create'))->assertStatus(200);
+test('unauthenticated can not be rendered create group form screen', function () {
+    get(route('groups.create'))->assertRedirectToRoute('index');
 });
 
-test('specific group screen can be rendered', function () {
+test('unauthenticated can not be rendered specific group screen', function () {
     $group = Group::factory()->create();
-    get(route('groups.edit', $group))
-        ->assertStatus(200)
-        ->assertSee($group->name);
+    get(route('groups.edit', $group))->assertRedirectToRoute('index');
 });
 
-test('create new group', function () {
-    $payload = ['id' => 1, 'name' => 'foo bar'];
-    post(route('groups.store'), $payload)
-        ->assertStatus(302);
+test('not admin can not be rendered groups screen', function () {
+    $group = Group::factory(['slug' => 'new'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('groups.index'))->assertRedirectToRoute('index');
+});
+
+test('not admin can not be rendered create group form screen', function () {
+    $group = Group::factory(['slug' => 'new'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('groups.create'))->assertRedirectToRoute('index');
+});
+
+test('not admin can not be rendered specific group screen', function () {
+    $group = Group::factory(['slug' => 'new'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('groups.edit', $group))->assertRedirectToRoute('index');
+});
+
+test('admin can be rendered groups screen', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('groups.index'))->assertSuccessful();
+});
+
+test('admin can be rendered create group form screen', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('groups.create'))->assertSuccessful();
+});
+
+test('admin can be rendered specific group screen', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+    actingAs($user)->get(route('groups.edit', $group))->assertSuccessful();
+});
+
+test('admin create new group', function () {
+    $adminGroup = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $adminGroup->id])->create();
+
+    $payload = ['id' => 2, 'name' => 'foo bar'];
+    actingAs($user)->post(route('groups.store'), $payload)
+        ->assertRedirectToRoute('groups.edit', $payload['id']);
+
     $group = Group::find($payload['id']);
 
     expect($group)
@@ -32,23 +69,28 @@ test('create new group', function () {
         ->and($group->name)->toBe($payload['name']);
 });
 
-test('create new group with existing name', function () {
-    Group::factory()->create(['name' => 'foobar', 'slug' => 'foobar']);
-    post(route('groups.store'), ['name' => 'foobar', 'slug' => 'foobar'])
+test('admin create new group with existing name', function () {
+    $adminGroup = Group::factory(['slug' => 'admin'])->create();            // 1
+    $user = User::factory(['group_id' => $adminGroup->id])->create();
+    Group::factory(10)->create();                                      // 1 + 10 = 11
+    Group::factory()->create(['name' => 'foobar', 'slug' => 'foobar']);     // 11 + 1 = 12
+    actingAs($user)->post(route('groups.store'), ['name' => 'foobar', 'slug' => 'foobar'])
         ->assertStatus(302)
         ->assertSessionHasErrors('name');
 
-    $this->assertCount(1, Group::all());
+    $this->assertCount(12, Group::all());
 });
 
-test('edit existing group', function () {
+test('admin edit existing group', function () {
+    $adminGroup = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $adminGroup->id])->create();
     $group = Group::factory()->create();
     $payload = [
         'id' => $group->id,
         'name' => 'foo bar',
     ];
-    patch(route('groups.update', $group), $payload)
-        ->assertStatus(302);
+    actingAs($user)->patch(route('groups.update', $group), $payload)
+        ->assertRedirectToRoute('groups.edit', $payload['id']);
     $group = Group::find($group->id);
 
     expect($group)
@@ -56,17 +98,22 @@ test('edit existing group', function () {
         ->and($group->name)->toBe($payload['name']);
 });
 
-test('delete existing group', function () {
+test('admin delete existing group', function () {
+    $adminGroup = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $adminGroup->id])->create();
     $group = Group::factory()->create();
-    delete(route('groups.destroy', $group))->assertStatus(302);
+    actingAs($user)->delete(route('groups.destroy', $group))
+        ->assertRedirectToRoute('groups.index');
 
     $group = Group::find($group->id);
     expect($group)->toBeNull();
 });
 
-test('can not delete group with is_not_delete', function () {
+test('admin can not delete group with is_not_delete', function () {
+    $adminGroup = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $adminGroup->id])->create();
     $group = Group::factory(['is_not_delete' => true])->create();
-    delete(route('groups.destroy', $group))->assertStatus(403);
+    actingAs($user)->delete(route('groups.destroy', $group))->assertStatus(403);
 
     $group = Group::find($group->id);
     expect($group)->toBeInstanceOf(Group::class);
