@@ -34,20 +34,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function getAvatarPath(): string
-    {
-        if ($this->avatar) {
-            return url('/storage/'.$this->avatar);
-        } else {
-            return 'https://placehold.jp/150x150.png';
-        }
-    }
-
-    public function isExistAvatar(): bool
-    {
-        return isset($this->avatar);
-    }
-
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);

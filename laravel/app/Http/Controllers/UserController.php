@@ -36,7 +36,8 @@ class UserController extends Controller
     {
         $avatarPath['avatar'] = null;
         if ($request->hasFile('avatar')) {
-            $avatarPath['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath['avatar'] = url('/storage/'.$path);
         }
 
         $user = User::create(
@@ -79,7 +80,8 @@ class UserController extends Controller
         // todo: rollback case (removing file)
         $avatarPath = [];
         if ($request->hasFile('avatar')) {
-            $avatarPath['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath['avatar'] = url('/storage/'.$path);
         }
 
         $user->updateOrFail(

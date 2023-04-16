@@ -49,8 +49,23 @@ class UserService
             throw new ModelNotFoundException('Model not found');
         }
 
+        if (! $user->wasRecentlyCreated) {
+            $this->updateUserFields($user);
+        }
+
         \Auth::login($user, true);
 
         return $user;
+    }
+
+    private function updateUserFields(User $user): bool
+    {
+        return $user->update(
+            [
+                'name' => $this->dto->first_name,
+                'last_name' => $this->dto->last_name,
+                'avatar' => $this->dto->photo_url,
+            ],
+        );
     }
 }

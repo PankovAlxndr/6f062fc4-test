@@ -28,7 +28,7 @@
                     <tr class="bg-white @if(!$loop->last) border-b @endif dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <th scope="row"
                             class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                            <img class="w-10 h-10 rounded-full" src="{{$user->getAvatarPath()}}"
+                            <img class="w-10 h-10 rounded-full" src="{{$user->avatar}}"
                                  alt="{{$user->name}}">
                             <div class="pl-3">
                                 <div class="text-base font-semibold">{{$user->name}}</div>

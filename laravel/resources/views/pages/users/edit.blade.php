@@ -16,8 +16,8 @@
             @csrf
             <input type="hidden" name="id" value="{{$user->id}}">
             <div class="mb-6">
-                @if($user->isExistAvatar())
-                    <img class="w-48 w-48 mb-3" src="{{$user->getAvatarpath()}}" alt="image description">
+                @if($user->avatar)
+                    <img class="w-48 w-48 mb-3" src="{{$user->avatar}}" alt="image description">
                 @endif
                 <label
                     class="block mb-2 text-sm font-medium  @error('avatar') text-red-700 dark:text-red-500 @else text-gray-900 dark:text-white @enderror"

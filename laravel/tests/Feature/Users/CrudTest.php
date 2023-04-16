@@ -50,8 +50,7 @@ test('create new user with avatar', function () {
         ->and($user->telegram_login)->toBe($payload['telegram_login'])
         ->and($user->telegram_id)->toBe($payload['telegram_id'])
         ->and($user->description)->toBe($payload['description'])
-        ->and($user->avatar)->toBe('avatars/'.$image->hashName())
-        ->and($user->getAvatarPath())->toBe(url('/storage/'.$user->avatar))
+        ->and($user->avatar)->toBe(url('/storage/avatars/'.$image->hashName()))
         ->and($user->tags)->toHaveCount(3)
         ->and($user->tags)->toContainOnlyInstancesOf(Tag::class)
         ->and($user->group_id)->toBe(Group::GROUP_NEW);
@@ -82,7 +81,6 @@ test('create new user without avatar', function () {
         ->and($user->telegram_id)->toBe($payload['telegram_id'])
         ->and($user->description)->toBe($payload['description'])
         ->and($user->avatar)->toBeNull()
-        ->and($user->getAvatarPath())->toBe('https://placehold.jp/150x150.png')
         ->and($user->tags)->toHaveCount(0)
         ->and($user->group_id)->toBe(Group::GROUP_NEW);
 });
