@@ -167,6 +167,17 @@ test('delete existing user', function () {
     expect($createdUser)->toBeNull();
 });
 
+test('self delete exception', function () {
+    $group = Group::factory(['slug' => 'admin'])->create();
+    $user = User::factory(['group_id' => $group->id])->create();
+
+    actingAs($user)->delete(route('users.destroy', $user->id))
+        ->assertStatus(403);
+
+    $existingUser = User::find($user->id);
+    expect($existingUser)->toBeInstanceOf(User::class);
+});
+
 test('logout user', function () {
     $group = Group::factory(['slug' => 'admin'])->create();
     $user = User::factory(['group_id' => $group->id])->create();
