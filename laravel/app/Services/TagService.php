@@ -34,8 +34,10 @@ class TagService
     private function cleanTagsCollection(Collection $collection): Collection
     {
         $this->cleanTags = $collection
-            ->unique()
-            ->each(fn (string $tag) => Str::replace(',', ' ', Str::lower($tag)));
+            ->map(fn (string $tag) => Str::replace(',', ' ', $tag))
+            ->map(fn (string $tag) => preg_replace('/^\s+|\s+$|\s+(?=\s)/', '', $tag))
+            ->map(fn (string $tag) => Str::lower($tag))
+            ->unique();
 
         return $this->cleanTags;
     }
