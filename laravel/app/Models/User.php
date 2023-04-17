@@ -21,17 +21,10 @@ class User extends Authenticatable
         'telegram_login',
         'telegram_id',
         'group_id',
-        'email',
-        'password',
     ];
 
     protected $hidden = [
-        'password',
         'remember_token',
-    ];
-
-    protected $casts = [
-        'email_verified_at' => 'datetime',
     ];
 
     public function group(): BelongsTo

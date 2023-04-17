@@ -35,7 +35,7 @@ test('create new user', function () {
         ->and($user->telegram_login)->toBe($service->dto->username)
         ->and($user->telegram_id)->toBe($service->dto->id)
         ->and($user->avatar)->toBe($service->dto->photo_url)
-        ->and($user->name)->toBe($service->dto->first_name)
+        ->and($user->name)->toBe(($service->dto->first_name.' '.$service->dto->last_name))
         ->and($user->group_id)->toBe(Group::GROUP_NEW);
 });
 

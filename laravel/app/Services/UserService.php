@@ -6,7 +6,6 @@ use App\Dto\Telegram\AuthDto;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class UserService
@@ -29,15 +28,11 @@ class UserService
     {
         return User::create(
             [
-                'name' => $this->dto->first_name,
-                'last_name' => $this->dto->last_name,
+                'name' => Str::of($this->dto->first_name.' '.$this->dto->last_name)->trim()->value(),
                 'avatar' => $this->dto->photo_url,
                 'telegram_login' => $this->dto->username,
                 'telegram_id' => $this->dto->id,
                 'group_id' => Group::GROUP_NEW,
-                'email' => fake()->unique()->safeEmail(),
-                'email_verified_at' => Carbon::now(),
-                'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
                 'remember_token' => Str::random(10),
             ],
         );
@@ -62,8 +57,7 @@ class UserService
     {
         return $user->update(
             [
-                'name' => $this->dto->first_name,
-                'last_name' => $this->dto->last_name,
+                'name' => Str::of($this->dto->first_name.' '.$this->dto->last_name)->trim()->value(),
                 'avatar' => $this->dto->photo_url,
             ],
         );
