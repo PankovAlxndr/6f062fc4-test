@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\RemoveAvatarJob;
 use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
@@ -59,10 +60,10 @@ test('admin can be rendered specific user screen', function () {
 test('admin create new user with avatar', function () {
     $group = Group::factory(['slug' => 'admin'])->create();
     $user = User::factory(['group_id' => $group->id])->create();
-
-    Storage::fake('public');
     $image = UploadedFile::fake()->image('avatar.jpg');
     $userGroup = Group::factory(['slug' => 'new'])->create();
+
+    Storage::fake('s3-avatar');
 
     $payload = [
         'id' => 2,
@@ -86,12 +87,10 @@ test('admin create new user with avatar', function () {
         ->and($createdUser->telegram_login)->toBe($payload['telegram_login'])
         ->and($createdUser->telegram_id)->toBe($payload['telegram_id'])
         ->and($createdUser->description)->toBe($payload['description'])
-        ->and($createdUser->avatar)->toBe(url('/storage/avatars/'.$image->hashName()))
+        ->and($createdUser->avatar)->toBeString()
         ->and($createdUser->tags)->toHaveCount(3)
         ->and($createdUser->tags)->toContainOnlyInstancesOf(Tag::class)
         ->and($createdUser->group_id)->toBe($userGroup->id);
-
-    Storage::disk('public')->assertExists('avatars/'.$image->hashName());
 });
 
 test('create new user without avatar', function () {
@@ -119,12 +118,14 @@ test('create new user without avatar', function () {
         ->and($createdUser->telegram_login)->toBe($payload['telegram_login'])
         ->and($createdUser->telegram_id)->toBe($payload['telegram_id'])
         ->and($createdUser->description)->toBe($payload['description'])
-        ->and($createdUser->avatar)->toBeNull()
+        ->and($createdUser->avatar)->toBe('//dummyimage.com/150x150/787878/fff.jpg')
+        ->and($createdUser->getRawOriginal('avatar'))->toBeNull()
         ->and($createdUser->tags)->toHaveCount(0)
         ->and($createdUser->group_id)->toBe($userGroup->id);
 });
 
 test('edit existing user', function () {
+    Queue::fake();
     $group = Group::factory(['slug' => 'admin'])->create();
     $user = User::factory(['group_id' => $group->id])->create();
 
@@ -155,13 +156,15 @@ test('edit existing user', function () {
 });
 
 test('delete existing user', function () {
+    Queue::fake();
     $group = Group::factory(['slug' => 'admin'])->create();
     $user = User::factory(['group_id' => $group->id])->create();
-
     $createdUser = User::factory()->create();
 
     actingAs($user)->delete(route('users.destroy', $createdUser))
         ->assertRedirectToRoute('users.index');
+
+    Queue::assertPushed(RemoveAvatarJob::class);
 
     $createdUser = User::find($createdUser->id);
     expect($createdUser)->toBeNull();

@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Services\AvatarUploader;
 use App\Services\Telegram\CheckAuthorizationService;
+use GuzzleHttp\Client;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\UrlGenerator;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,8 +28,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url): void
     {
+        $url->forceScheme('https');
+
         $this->app->bind(CheckAuthorizationService::class, function (Application $app) {
             return new CheckAuthorizationService(config('telegram.token'));
+        });
+
+        $this->app->bind(AvatarUploader::class, function (Application $app) {
+            new AvatarUploader(Storage::disk('s3-avatar'), new Client());
         });
     }
 }

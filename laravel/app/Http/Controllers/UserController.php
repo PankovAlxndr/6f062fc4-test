@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Users\StoreRequest;
 use App\Http\Requests\Users\UpdateRequest;
+use App\Jobs\RemoveAvatarJob;
 use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
@@ -33,16 +34,10 @@ class UserController extends Controller
 
     public function store(StoreRequest $request, TagService $tagService)
     {
-        $avatarPath['avatar'] = null;
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $avatarPath['avatar'] = url('/storage/'.$path);
-        }
 
         $user = User::create(
             array_merge(
                 ['remember_token' => Str::random(10)],
-                $avatarPath,
                 $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id')
             )
         );
@@ -54,7 +49,17 @@ class UserController extends Controller
                 $tagsDb = Tag::whereIn('name', $cleanTags->toArray())->get();
                 $user->tags()->attach($tagsDb);
             }
+        }
 
+        if ($request->hasFile('avatar')) {
+            $extension = $request->file('avatar')->getClientOriginalExtension();
+            $path = $request->file('avatar')
+                ->storeAs(
+                    "/{$user->id}",
+                    Str::uuid()->toString().'.'.$extension,
+                    's3-avatar'
+                );
+            $user->update(['avatar' => $path]);
         }
 
         return redirect()->route('users.edit', $user);
@@ -71,19 +76,7 @@ class UserController extends Controller
 
     public function update(UpdateRequest $request, User $user, TagService $tagService)
     {
-        // todo: rollback case (removing file)
-        $avatarPath = [];
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $avatarPath['avatar'] = url('/storage/'.$path);
-        }
-
-        $user->updateOrFail(
-            array_merge(
-                $avatarPath,
-                $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id')
-            )
-        );
+        $user->updateOrFail($request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id'));
 
         if ($request->safe()->has('tags') && $tags = $request->safe()->only('tags')['tags']) {
             $tagCollection = collect(json_decode($tags, true));
@@ -94,12 +87,28 @@ class UserController extends Controller
             }
         }
 
+        if ($request->hasFile('avatar')) {
+            $extension = $request->file('avatar')->getClientOriginalExtension();
+            $path = $request->file('avatar')
+                ->storeAs(
+                    "/{$user->id}",
+                    Str::uuid()->toString().'.'.$extension,
+                    's3-avatar'
+                );
+            RemoveAvatarJob::dispatch($user->getRawOriginal('avatar')); // todo можно будет переместить в обсервер или вызвать событие
+            $user->update(['avatar' => $path]);
+        }
+
         return redirect()->route('users.edit', $user);
     }
 
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
+
+        if ($user->avatar) {
+            RemoveAvatarJob::dispatch($user->getRawOriginal('avatar')); // todo можно будет переместить в обсервер или вызвать событие
+        }
 
         $user->delete();
 
