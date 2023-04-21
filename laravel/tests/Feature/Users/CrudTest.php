@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\RemoveAvatarJob;
+use App\Jobs\Telegram\RemoveAvatarJob;
 use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;

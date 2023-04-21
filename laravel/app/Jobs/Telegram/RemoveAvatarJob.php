@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Jobs\Telegram;
 
 use App\Services\AvatarUploader;
 use GuzzleHttp\Client;
