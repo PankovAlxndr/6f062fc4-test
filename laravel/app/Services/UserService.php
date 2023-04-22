@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use App\Dto\Telegram\AuthDto;
+use App\Events\RegisterNewUserEvent;
 use App\Exceptions\ImageUploader\SaveFileException;
-use App\Jobs\RemoveAvatarJob;
+use App\Jobs\Telegram\RemoveAvatarJob;
 use App\Models\Group;
 use App\Models\User;
 use GuzzleHttp\Exception\GuzzleException;
@@ -40,6 +41,9 @@ class UserService
                 'remember_token' => Str::random(10),
             ],
         );
+
+        RegisterNewUserEvent::dispatch($user);
+
         if ($this->dto->photo_url) {
             try {
                 $avatarUrl = $this->avatarUploader->uploadAvatar($this->dto->photo_url, $user);

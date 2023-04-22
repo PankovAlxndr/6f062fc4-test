@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,5 +71,10 @@ class User extends Authenticatable
                     : '//dummyimage.com/150x150/787878/fff.jpg'; // todo: local mock
             },
         );
+    }
+
+    public function scopeAdmin(Builder $query): void
+    {
+        $query->whereGroupId(Group::GROUP_ADMIN);
     }
 }

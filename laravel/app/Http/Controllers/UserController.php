@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\RegisterNewUserEvent;
 use App\Http\Requests\Users\StoreRequest;
 use App\Http\Requests\Users\UpdateRequest;
-use App\Jobs\RemoveAvatarJob;
+use App\Jobs\Telegram\RemoveAvatarJob;
 use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
@@ -41,6 +42,8 @@ class UserController extends Controller
                 $request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id')
             )
         );
+
+        RegisterNewUserEvent::dispatch($user);
 
         if ($request->safe()->has('tags') && $tags = $request->safe()->only('tags')['tags']) {
             $tagCollection = collect(json_decode($tags, true));
