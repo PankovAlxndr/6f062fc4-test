@@ -34,7 +34,7 @@ class UserService
     {
         $user = User::create(
             [
-                'name' => Str::of($this->dto->first_name.' '.$this->dto->last_name)->trim()->value(),
+                'name' => $this->dto->getFullName(),
                 'telegram_login' => $this->dto->username,
                 'telegram_id' => $this->dto->id,
                 'group_id' => Group::GROUP_NEW,
@@ -74,7 +74,7 @@ class UserService
     private function updateUserFields(User $user): bool
     {
         $arUpdate = [
-            'name' => Str::of($this->dto->first_name.' '.$this->dto->last_name)->trim()->value(),
+            'name' => $this->dto->getFullName(),
         ];
 
         $newFilePath = $this->avatarUploader->generatePath($this->dto->photo_url, $user);

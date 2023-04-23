@@ -3,6 +3,7 @@
 namespace App\Dto\Telegram;
 
 use App\Http\Requests\Telegram\SigInRequest;
+use Illuminate\Support\Str;
 
 class AuthDto
 {
@@ -20,5 +21,10 @@ class AuthDto
     public static function createFromRequest(SigInRequest $request): AuthDto
     {
         return new AuthDto(...$request->safe()->all());
+    }
+
+    public function getFullName(): string
+    {
+        return Str::of($this->first_name.' '.$this->last_name)->trim()->value();
     }
 }
