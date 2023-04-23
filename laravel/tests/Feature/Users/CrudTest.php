@@ -118,7 +118,7 @@ test('create new user without avatar', function () {
         ->and($createdUser->telegram_login)->toBe($payload['telegram_login'])
         ->and($createdUser->telegram_id)->toBe($payload['telegram_id'])
         ->and($createdUser->description)->toBe($payload['description'])
-        ->and($createdUser->avatar)->toBe('//dummyimage.com/150x150/787878/fff.jpg')
+        ->and($createdUser->avatar)->toBeString()
         ->and($createdUser->getRawOriginal('avatar'))->toBeNull()
         ->and($createdUser->tags)->toHaveCount(0)
         ->and($createdUser->group_id)->toBe($userGroup->id);

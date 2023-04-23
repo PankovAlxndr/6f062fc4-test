@@ -68,7 +68,7 @@ class User extends Authenticatable
             get: function (?string $path) {
                 return $path
                     ? Storage::disk('s3-avatar')->url($path)
-                    : '//dummyimage.com/150x150/787878/fff.jpg'; // todo: local mock
+                    : \Vite::asset('resources/images/no-avatar.svg');
             },
         );
     }
