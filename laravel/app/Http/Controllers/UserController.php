@@ -44,8 +44,7 @@ class UserController extends Controller
         );
 
         RegisterNewUserEvent::dispatch($user);
-
-        if ($request->safe()->has('tags') && $tags = $request->safe()->only('tags')['tags']) {
+        if ($request->safe()->has('tags') && $tags = $request->validated('tags')) {
             $tagCollection = collect(json_decode($tags, true));
             $tagService->persistTags($tagCollection->pluck('value'));
             if ($cleanTags = $tagService->getCleanTags()) {
@@ -81,7 +80,7 @@ class UserController extends Controller
     {
         $user->updateOrFail($request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id'));
 
-        if ($request->safe()->has('tags') && $tags = $request->safe()->only('tags')['tags']) {
+        if ($request->safe()->has('tags') && $tags = $request->validated('tags')) {
             $tagCollection = collect(json_decode($tags, true));
             $tagService->persistTags($tagCollection->pluck('value'));
             if ($cleanTags = $tagService->getCleanTags()) {

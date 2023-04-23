@@ -23,7 +23,8 @@ class TagController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $slug = Str::slug($request->safe()->only('name')['name']);
+        $slug = Str::slug($request->validated('name'));
+
         if (Tag::whereSlug($slug)->exists()) {
             return back()
                 ->withInput()
@@ -42,7 +43,8 @@ class TagController extends Controller
 
     public function update(UpdateRequest $request, Tag $tag)
     {
-        $slug = Str::slug($request->safe()->only('name')['name']);
+        $slug = Str::slug($request->validated('name'));
+
         if (Tag::whereSlug($slug)->whereNot('id', $tag->id)->exists()) {
             return back()
                 ->withInput()

@@ -23,7 +23,8 @@ class GroupController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $slug = Str::slug($request->safe()->only('name')['name']);
+        $slug = Str::slug($request->validated('name'));
+
         if (Group::whereSlug($slug)->exists()) {
             return back()
                 ->withInput()
@@ -42,7 +43,8 @@ class GroupController extends Controller
 
     public function update(UpdateRequest $request, Group $group)
     {
-        $slug = Str::slug($request->safe()->only('name')['name']);
+        $slug = Str::slug($request->validated('name'));
+
         if (Group::whereSlug($slug)->whereNot('id', $group->id)->exists()) {
             return back()
                 ->withInput()
