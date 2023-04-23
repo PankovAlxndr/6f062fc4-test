@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Action\User\AttachAvatarAction;
+use App\Action\User\AttachTagAction;
 use App\Events\User\DeleteUserEvent;
 use App\Events\User\RegisterUserEvent;
-use App\Events\User\UpdateAvatarUserEvent;
 use App\Http\Requests\Users\StoreRequest;
 use App\Http\Requests\Users\UpdateRequest;
 use App\Models\Group;
-use App\Models\Tag;
 use App\Models\User;
 use App\Services\TagService;
 use Illuminate\Http\Request;
@@ -34,9 +34,8 @@ class UserController extends Controller
         return view('pages.users.create', compact('groups'));
     }
 
-    public function store(StoreRequest $request, TagService $tagService)
+    public function store(StoreRequest $request)
     {
-
         $user = User::create(
             array_merge(
                 ['remember_token' => Str::random(10)],
@@ -46,24 +45,15 @@ class UserController extends Controller
 
         RegisterUserEvent::dispatch($user);
 
-        if ($request->safe()->has('tags') && $tags = $request->validated('tags')) {
-            $tagCollection = collect(json_decode($tags, true));
-            $tagService->persistTags($tagCollection->pluck('value'));
-            if ($cleanTags = $tagService->getCleanTags()) {
-                $tagsDb = Tag::whereIn('name', $cleanTags->toArray())->get();
-                $user->tags()->attach($tagsDb);
-            }
+        if ($request->safe()->has('tags')) {
+            $action = new AttachTagAction(new TagService());
+            $tagCollection = collect(json_decode($request->validated('tags'), true));
+            $user = $action->execute($user, $tagCollection);
         }
 
         if ($request->hasFile('avatar')) {
-            $extension = $request->file('avatar')->getClientOriginalExtension();
-            $path = $request->file('avatar')
-                ->storeAs(
-                    "/{$user->id}",
-                    Str::uuid()->toString().'.'.$extension,
-                    's3-avatar'
-                );
-            $user->update(['avatar' => $path]);
+            $action = new AttachAvatarAction();
+            $user = $action->execute($user, $request->file('avatar'));
         }
 
         return redirect()->route('users.edit', $user);
@@ -78,29 +68,19 @@ class UserController extends Controller
         return view('pages.users.edit', compact('user', 'tags', 'groups'));
     }
 
-    public function update(UpdateRequest $request, User $user, TagService $tagService)
+    public function update(UpdateRequest $request, User $user)
     {
         $user->updateOrFail($request->safe()->only('name', 'description', 'telegram_login', 'telegram_id', 'group_id'));
 
-        if ($request->safe()->has('tags') && $tags = $request->validated('tags')) {
-            $tagCollection = collect(json_decode($tags, true));
-            $tagService->persistTags($tagCollection->pluck('value'));
-            if ($cleanTags = $tagService->getCleanTags()) {
-                $tagsDb = Tag::whereIn('name', $cleanTags->toArray())->get();
-                $user->tags()->sync($tagsDb);
-            }
+        if ($request->safe()->has('tags')) {
+            $action = new AttachTagAction(new TagService());
+            $tagCollection = collect(json_decode($request->validated('tags'), true));
+            $user = $action->execute($user, $tagCollection);
         }
 
         if ($request->hasFile('avatar')) {
-            $extension = $request->file('avatar')->getClientOriginalExtension();
-            $path = $request->file('avatar')
-                ->storeAs(
-                    "/{$user->id}",
-                    Str::uuid()->toString().'.'.$extension,
-                    's3-avatar'
-                );
-            UpdateAvatarUserEvent::dispatch($user);
-            $user->update(['avatar' => $path]);
+            $action = new AttachAvatarAction();
+            $user = $action->execute($user, $request->file('avatar'));
         }
 
         return redirect()->route('users.edit', $user);
