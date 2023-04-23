@@ -1,6 +1,7 @@
 <?php
 
 use App\Dto\Telegram\AuthDto;
+use App\Events\User\RegisterUserEvent;
 use App\Models\Group;
 use App\Models\User;
 use App\Services\AvatarUploader;
@@ -31,8 +32,11 @@ test('check exist user', function () {
 });
 
 test('create new user', function () {
+    Event::fake();
     $service = createUserService();
     $user = $service->createUser();
+
+    Event::assertDispatched(RegisterUserEvent::class);
 
     expect($user)->toBeInstanceOf(User::class)
         ->and($user->telegram_login)->toBe($service->dto->username)

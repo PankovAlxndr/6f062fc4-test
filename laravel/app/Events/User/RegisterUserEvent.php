@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\User;
 
 use App\Models\User;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class RegisterNewUserEvent
+class RegisterUserEvent
 {
     use Dispatchable, SerializesModels;
 

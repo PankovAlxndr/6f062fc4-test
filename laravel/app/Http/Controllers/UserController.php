@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\RegisterNewUserEvent;
+use App\Events\User\DeleteUserEvent;
+use App\Events\User\RegisterUserEvent;
+use App\Events\User\UpdateAvatarUserEvent;
 use App\Http\Requests\Users\StoreRequest;
 use App\Http\Requests\Users\UpdateRequest;
-use App\Jobs\Telegram\RemoveAvatarJob;
 use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
@@ -43,7 +44,8 @@ class UserController extends Controller
             )
         );
 
-        RegisterNewUserEvent::dispatch($user);
+        RegisterUserEvent::dispatch($user);
+
         if ($request->safe()->has('tags') && $tags = $request->validated('tags')) {
             $tagCollection = collect(json_decode($tags, true));
             $tagService->persistTags($tagCollection->pluck('value'));
@@ -97,7 +99,7 @@ class UserController extends Controller
                     Str::uuid()->toString().'.'.$extension,
                     's3-avatar'
                 );
-            RemoveAvatarJob::dispatch($user->getRawOriginal('avatar')); // todo можно будет переместить в обсервер или вызвать событие
+            UpdateAvatarUserEvent::dispatch($user);
             $user->update(['avatar' => $path]);
         }
 
@@ -107,12 +109,8 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
-
-        if ($user->avatar) {
-            RemoveAvatarJob::dispatch($user->getRawOriginal('avatar')); // todo можно будет переместить в обсервер или вызвать событие
-        }
-
         $user->delete();
+        DeleteUserEvent::dispatch($user);
 
         return redirect()->route('users.index');
     }

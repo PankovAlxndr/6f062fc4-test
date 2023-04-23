@@ -1,6 +1,7 @@
 <?php
 
-use App\Jobs\Telegram\RemoveAvatarJob;
+use App\Events\User\DeleteUserEvent;
+use App\Events\User\RegisterUserEvent;
 use App\Models\Group;
 use App\Models\Tag;
 use App\Models\User;
@@ -58,6 +59,7 @@ test('admin can be rendered specific user screen', function () {
 });
 
 test('admin create new user with avatar', function () {
+    Event::fake();
     $group = Group::factory(['slug' => 'admin'])->create();
     $user = User::factory(['group_id' => $group->id])->create();
     $image = UploadedFile::fake()->image('avatar.jpg');
@@ -79,6 +81,8 @@ test('admin create new user with avatar', function () {
     actingAs($user)->post(route('users.store'), $payload)
         ->assertRedirectToRoute('users.edit', $payload['id']);
 
+    Event::assertDispatched(RegisterUserEvent::class);
+
     $createdUser = User::find($payload['id']);
 
     expect($createdUser)
@@ -94,6 +98,7 @@ test('admin create new user with avatar', function () {
 });
 
 test('create new user without avatar', function () {
+    Event::fake();
     $group = Group::factory(['slug' => 'admin'])->create();
     $user = User::factory(['group_id' => $group->id])->create();
 
@@ -109,6 +114,8 @@ test('create new user without avatar', function () {
 
     actingAs($user)->post(route('users.store'), $payload)
         ->assertRedirectToRoute('users.edit', $payload['id']);
+
+    Event::assertDispatched(RegisterUserEvent::class);
 
     $createdUser = User::find($payload['id']);
 
@@ -156,7 +163,7 @@ test('edit existing user', function () {
 });
 
 test('delete existing user', function () {
-    Queue::fake();
+    Event::fake();
     $group = Group::factory(['slug' => 'admin'])->create();
     $user = User::factory(['group_id' => $group->id])->create();
     $createdUser = User::factory()->create();
@@ -164,7 +171,7 @@ test('delete existing user', function () {
     actingAs($user)->delete(route('users.destroy', $createdUser))
         ->assertRedirectToRoute('users.index');
 
-    Queue::assertPushed(RemoveAvatarJob::class);
+    Event::assertDispatched(DeleteUserEvent::class);
 
     $createdUser = User::find($createdUser->id);
     expect($createdUser)->toBeNull();

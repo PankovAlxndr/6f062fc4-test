@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url): void
     {
-        $url->forceScheme('https');
+        // $url->forceScheme('https');
 
         $this->app->bind(CheckAuthorizationService::class, function (Application $app) {
             return new CheckAuthorizationService(config('telegram.token'));

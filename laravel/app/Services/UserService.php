@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Dto\Telegram\AuthDto;
-use App\Events\RegisterNewUserEvent;
+use App\Events\User\RegisterUserEvent;
+use App\Events\User\UpdateAvatarUserEvent;
 use App\Exceptions\ImageUploader\SaveFileException;
-use App\Jobs\Telegram\RemoveAvatarJob;
 use App\Models\Group;
 use App\Models\User;
 use GuzzleHttp\Exception\GuzzleException;
@@ -42,7 +42,7 @@ class UserService
             ],
         );
 
-        RegisterNewUserEvent::dispatch($user);
+        RegisterUserEvent::dispatch($user);
 
         if ($this->dto->photo_url) {
             try {
@@ -82,8 +82,7 @@ class UserService
             try {
                 $newAvatarUrl = $this->avatarUploader->uploadAvatar($this->dto->photo_url, $user);
                 $arUpdate['avatar'] = $newAvatarUrl;
-
-                RemoveAvatarJob::dispatch($user->getRawOriginal('avatar')); // todo можно будет переместить в обсервер или вызвать событие
+                UpdateAvatarUserEvent::dispatch($user);
             } catch (SaveFileException $e) {
             } catch (GuzzleException $e) {
             }

@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
-use App\Events\RegisterNewUserEvent;
-use App\Listeners\RegisterNewUserListener;
+use App\Events\User\DeleteUserEvent;
+use App\Events\User\RegisterUserEvent;
+use App\Events\User\UpdateAvatarUserEvent;
+use App\Listeners\User\RegisterUserListener;
+use App\Listeners\User\RemoveAvatarUserListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -19,8 +22,14 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        RegisterNewUserEvent::class => [
-            RegisterNewUserListener::class,
+        RegisterUserEvent::class => [
+            RegisterUserListener::class,
+        ],
+        DeleteUserEvent::class => [
+            RemoveAvatarUserListener::class,
+        ],
+        UpdateAvatarUserEvent::class => [
+            RemoveAvatarUserListener::class,
         ],
     ];
 
