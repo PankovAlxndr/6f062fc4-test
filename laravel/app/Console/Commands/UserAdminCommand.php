@@ -23,7 +23,7 @@ class UserAdminCommand extends Command
             return;
         }
 
-        if ($user->group_id === Group::GROUP_ADMIN) {
+        if (Group::GROUP_ADMIN === $user->group_id) {
             $this->error('Login: '.$login.' already admin');
 
             return;

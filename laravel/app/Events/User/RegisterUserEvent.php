@@ -8,7 +8,8 @@ use Illuminate\Queue\SerializesModels;
 
 class RegisterUserEvent
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     public function __construct(public User $user)
     {

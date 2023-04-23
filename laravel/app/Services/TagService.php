@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Tag;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class TagService
 {
@@ -18,7 +19,7 @@ class TagService
     public function persistTags(Collection $collection): void
     {
         if ($collection->isEmpty()) {
-            throw new \InvalidArgumentException('Коллекция тегов пуста');
+            throw new InvalidArgumentException('Коллекция тегов пуста');
         }
 
         $this->cleanTagsCollection($collection)

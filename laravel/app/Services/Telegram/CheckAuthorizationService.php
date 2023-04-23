@@ -25,7 +25,7 @@ class CheckAuthorizationService
         $secretKey = hash('sha256', $this->token, true);
         $hash = hash_hmac('sha256', $dataStringCheck, $secretKey);
 
-        if (strcmp($hash, $dto->hash) !== 0) {
+        if (0 !== strcmp($hash, $dto->hash)) {
             throw new InvalidDataException('Data is NOT from Telegram');
         }
 

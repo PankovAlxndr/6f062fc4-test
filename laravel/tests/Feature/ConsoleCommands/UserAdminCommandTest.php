@@ -2,6 +2,7 @@
 
 use App\Models\Group;
 use App\Models\User;
+
 use function Pest\Laravel\artisan;
 
 test('not enough argument', function () {

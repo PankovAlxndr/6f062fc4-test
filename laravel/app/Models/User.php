@@ -12,10 +12,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use TypeError;
+use Vite;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
 
     protected $fillable = [
         'name',
@@ -59,7 +63,7 @@ class User extends Authenticatable
             return $this->group === $group;
         }
 
-        throw new \TypeError('Unsupported type for $group parameter to hasGroup().');
+        throw new TypeError('Unsupported type for $group parameter to hasGroup().');
     }
 
     protected function avatar(): Attribute
@@ -68,7 +72,7 @@ class User extends Authenticatable
             get: function (?string $path) {
                 return $path
                     ? Storage::disk('s3-avatar')->url($path)
-                    : \Vite::asset('resources/images/no-avatar.svg');
+                    : Vite::asset('resources/images/no-avatar.svg');
             },
         );
     }
